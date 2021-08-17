@@ -8,6 +8,7 @@ import argparse
 import os
 import pprint
 import onnx
+from onnxsim import simplify
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -27,8 +28,11 @@ def parse_args():
     
     parser.add_argument('--cfg',
                         help='experiment configure file name',
-                        default="experiments/cityscapes/ddrnet23.yaml",
+                        default="experiments/cityscapes/ddrnet23_slim.yaml",
                         type=str)
+    parser.add_argument('--size', nargs=2, metavar=('width', 'height'), type=int,
+                        help='Width followed by the height of the image that network will be configured to inference',
+                        default=(1280, 640))
     parser.add_argument('opts',
                         help="Modify config options using the command-line",
                         default=None,
@@ -40,13 +44,14 @@ def parse_args():
     return args
 
 class onnx_net(nn.Module):
-    def __init__(self, model):
+    def __init__(self, model, size):
         super(onnx_net, self).__init__()
         self.backone = model
+        self.size = size
 
     def forward(self, x):
         x1, x2 = self.backone(x)
-        y = F.interpolate(x1, size=(480,640), mode='bilinear')
+        y = F.interpolate(x1, size=self.size, mode='bilinear')
         # y = F.softmax(y, dim=1)
         y = torch.argmax(y, dim=1)
 
@@ -55,6 +60,8 @@ class onnx_net(nn.Module):
 
 def main():
     args = parse_args()
+
+    w, h = args.size
 
     logger, final_output_dir, _ = create_logger(
         config, args.cfg, 'test')
@@ -77,7 +84,7 @@ def main():
     if config.TEST.MODEL_FILE:
         model_state_file = config.TEST.MODEL_FILE
     else:
-        model_state_file = os.path.join(final_output_dir, 'best_0.7589.pth')   
+        model_state_file = os.path.join(final_output_dir, 'best.pth')   
         # model_state_file = os.path.join(final_output_dir, 'final_state.pth')        
     logger.info('=> loading model from {}'.format(model_state_file))
         
@@ -93,14 +100,14 @@ def main():
     model_dict.update(pretrained_dict)
     model.load_state_dict(model_dict)
 
-    net = onnx_net(model)
+    net = onnx_net(model, size=(h, w))
     net = net.eval()
 
     # x = torch.randn((1, 3, 512, 384))
-    x = torch.randn((1,3,480,640))
+    x = torch.randn((1,3,h,w))
     torch_out = net(x)
 
-    output_path = "output/ddrnet23.onnx"
+    output_path = f"output/ddrnet23_{w}.onnx"
     torch.onnx.export(net,               # model being run
                     x,                         # model input (or a tuple for multiple inputs)
                     output_path,   # where to save the model (can be a file or file-like object)
@@ -112,6 +119,15 @@ def main():
                     verbose=True,
                     )
     # onnx.checker.check_model(output_path)
+
+    # load your predefined ONNX model
+    model = onnx.load(output_path)
+
+    # convert model
+    model_simp, check = simplify(model, check_n=3)
+
+    assert check, "Simplified ONNX model could not be validated"
+    onnx.save_model(model_simp, output_path)
 
     
 
