@@ -51,7 +51,7 @@ class onnx_net(nn.Module):
 
     def forward(self, x):
         x1, x2 = self.backone(x)
-        y = F.interpolate(x1, size=self.size, mode='bilinear')
+        y = F.interpolate(x2, size=self.size, mode='bilinear')
         # y = F.softmax(y, dim=1)
         y = torch.argmax(y, dim=1)
 
