@@ -38,7 +38,7 @@ def parse_args():
     
     parser.add_argument('--cfg',
                         help='experiment configure file name',
-                        default="experiments/cityscapes/ddrnet_slim.yaml",
+                        default="experiments/cityscapes/ddrnet23_slim.yaml",
                         type=str)
     parser.add_argument('--seed', type=int, default=304)
     parser.add_argument("--local_rank", type=int, default=-1)       
