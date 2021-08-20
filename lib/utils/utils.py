@@ -117,11 +117,13 @@ def create_logger(cfg, cfg_name, phase='train'):
     return logger, str(final_output_dir), str(tensorboard_log_dir)
 
 def get_confusion_matrix(label, pred, size, num_class, ignore=-1):
+    # label, pred, size, num_class, label_pred, ignore=-1
     """
     Calcute the confusion matrix by given label and pred
     """
     output = pred.cpu().numpy().transpose(0, 2, 3, 1)
     seg_pred = np.asarray(np.argmax(output, axis=3), dtype=np.uint8)
+    # seg_pred = label_pred.numpy()
     seg_gt = np.asarray(
     label.cpu().numpy()[:, :size[-2], :size[-1]], dtype=np.int)
 
@@ -185,27 +187,31 @@ class Vedio(object):
 
 class Map16(object):
     def __init__(self, vedioCap, visualpoint=True):
-        self.names = ("background", "floor", "bed", "cabinet,wardrobe,bookcase,shelf",
-                "person", "door", "table,desk,coffee", "chair,armchair,sofa,bench,swivel,stool",
-                "rug", "railing", "column", "refrigerator", "stairs,stairway,step", "escalator", "wall",
-                "dog", "plant")
-        self.colors  = np.array([[0, 0, 0],
-                    [0, 0, 255],
-                    [0, 255, 0],
-                    [0, 255, 255],
-                    [255, 0, 0 ],
-                    [255, 0, 255 ], 
-                    [255, 255, 0 ],
-                    [255, 255, 255 ],
-                    [0, 0, 128 ],
-                    [0, 128, 0 ],
-                    [128, 0, 0 ],
-                    [0, 128, 128 ],
-                    [128, 0, 0 ],
-                    [128, 0, 128 ],
-                    [128, 128, 0 ],
-                    [128, 128, 128 ],
-                    [192, 192, 192 ]], dtype=np.uint8)
+        self.names = ("unlabeled", "road", "sidewalk", "building", "wall",
+                "fence", "pole", "traffic light", "traffic sign",
+                "vegetation", "terrain", "sky", "person", "rider", "car", "truck",
+                "bus", "train", "motorcycle", "bicycle")
+        self.colors  = np.array([(0, 0, 0),
+                    (128, 64,128),
+                    (244, 35,232),
+                    ( 70, 70, 70),
+                    (102,102,156),
+                    (190,153,153), 
+                    (153,153,153),
+                    (250,170, 30),
+                    (220,220,  0),
+                    (107,142, 35),
+                    (152,251,152),
+                    ( 70,130,180),
+                    # (220, 20, 60),
+                    (255,  255,  255),
+                    (255,  0,  0),
+                    (  0,  0,142),
+                    (  0,  0, 70),
+                    (  0, 60,100),
+                    (  0, 80,100),
+                    (  0,  0,230), 
+                    (119, 11, 32)], dtype=np.uint8)
         self.outDir = "output/map16"
         self.vedioCap = vedioCap
         self.visualpoint = visualpoint

@@ -97,7 +97,7 @@ class Cityscapes(BaseDataset):
                 label[temp == k] = v
         return label
 
-    def __getitem__(self, index):
+    def __getitem__(self, index, read_offline_preds=False):
         item = self.files[index]
         name = item["name"]
         image = cv2.imread(os.path.join(self.root,'cityscapes',item["img"]),
@@ -116,6 +116,15 @@ class Cityscapes(BaseDataset):
 
         image, label = self.gen_sample(image, label, 
                                 self.multi_scale, self.flip)
+
+        if read_offline_preds:
+            city_folder = item["img"].split("/")[2]
+            label_pred_filename = item["img"].split("/")[-1]
+            label_pred_path = os.path.join(
+                '/home/integrant/Documents/ucLh/Programming/Python/Segmentation/py_trt_inference/pred_fp32', city_folder,
+                label_pred_filename)
+            label_pred = cv2.imread(label_pred_path, cv2.IMREAD_GRAYSCALE)
+            return image.copy(), label.copy(), np.array(size), name, label_pred
 
         return image.copy(), label.copy(), np.array(size), name
 
