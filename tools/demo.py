@@ -35,7 +35,7 @@ def parse_args():
     
     parser.add_argument('--cfg',
                         help='experiment configure file name',
-                        default="experiments/map/map_hrnet_ocr_w18_small_v2_512x1024_sgd_lr1e-2_wd5e-4_bs_12_epoch484.yaml",
+                        default="experiments/cityscapes/ddrnet23_slim.yaml",
                         type=str)
     parser.add_argument('opts',
                         help="Modify config options using the command-line",
