@@ -213,7 +213,7 @@ def main():
         )
     else:
         model = nn.DataParallel(model, device_ids=gpus).cuda()
-    
+
 
     # optimizer
     if config.TRAIN.OPTIMIZER == 'sgd':
@@ -248,8 +248,7 @@ def main():
     best_mIoU = 0
     last_epoch = 0
     if config.TRAIN.RESUME:
-        model_state_file = os.path.join(final_output_dir,
-                                        'checkpoint.pth.tar')
+        model_state_file = config.MODEL.PRETRAINED
         if os.path.isfile(model_state_file):
             checkpoint = torch.load(model_state_file, map_location={'cuda:0': 'cpu'})
             best_mIoU = checkpoint['best_mIoU']
@@ -269,45 +268,54 @@ def main():
     extra_iters = config.TRAIN.EXTRA_EPOCH * extra_epoch_iters
     
     for epoch in range(last_epoch, end_epoch):
+        try:
+            current_trainloader = extra_trainloader if epoch >= config.TRAIN.END_EPOCH else trainloader
+            if current_trainloader.sampler is not None and hasattr(current_trainloader.sampler, 'set_epoch'):
+                current_trainloader.sampler.set_epoch(epoch)
 
-        current_trainloader = extra_trainloader if epoch >= config.TRAIN.END_EPOCH else trainloader
-        if current_trainloader.sampler is not None and hasattr(current_trainloader.sampler, 'set_epoch'):
-            current_trainloader.sampler.set_epoch(epoch)
+            # valid_loss, mean_IoU, IoU_array = validate(config,
+            #         testloader, model, writer_dict)
 
-        # valid_loss, mean_IoU, IoU_array = validate(config, 
-        #         testloader, model, writer_dict)
+            if epoch >= config.TRAIN.END_EPOCH:
+                train(config, epoch-config.TRAIN.END_EPOCH,
+                      config.TRAIN.EXTRA_EPOCH, extra_epoch_iters,
+                      config.TRAIN.EXTRA_LR, extra_iters,
+                      extra_trainloader, optimizer, model, writer_dict)
+            else:
+                train(config, epoch, config.TRAIN.END_EPOCH,
+                      epoch_iters, config.TRAIN.LR, num_iters,
+                      trainloader, optimizer, model, writer_dict)
 
-        if epoch >= config.TRAIN.END_EPOCH:
-            train(config, epoch-config.TRAIN.END_EPOCH, 
-                  config.TRAIN.EXTRA_EPOCH, extra_epoch_iters, 
-                  config.TRAIN.EXTRA_LR, extra_iters, 
-                  extra_trainloader, optimizer, model, writer_dict)
-        else:
-            train(config, epoch, config.TRAIN.END_EPOCH, 
-                  epoch_iters, config.TRAIN.LR, num_iters,
-                  trainloader, optimizer, model, writer_dict)
+            if epoch % 10 == 0:
+                valid_loss, mean_IoU, IoU_array = validate(config,
+                            testloader, model, writer_dict)
 
-        if epoch % 10 == 0:
-            valid_loss, mean_IoU, IoU_array = validate(config, 
-                        testloader, model, writer_dict)
-
-        if args.local_rank <= 0:
-            logger.info('=> saving checkpoint to {}'.format(
-                final_output_dir + 'checkpoint.pth.tar'))
+            if args.local_rank <= 0:
+                logger.info('=> saving checkpoint to {}'.format(
+                    final_output_dir + 'checkpoint.pth.tar'))
+                torch.save({
+                    'epoch': epoch+1,
+                    'best_mIoU': best_mIoU,
+                    'state_dict': model.module.state_dict(),
+                    'optimizer': optimizer.state_dict(),
+                }, os.path.join(final_output_dir,'checkpoint.pth.tar'))
+                if mean_IoU > best_mIoU:
+                    best_mIoU = mean_IoU
+                    torch.save(model.module.state_dict(),
+                            os.path.join(final_output_dir, 'best.pth'))
+                msg = 'Loss: {:.3f}, MeanIU: {: 4.4f}, Best_mIoU: {: 4.4f}'.format(
+                            valid_loss, mean_IoU, best_mIoU)
+                logging.info(msg)
+                logging.info(IoU_array)
+        except KeyboardInterrupt:
+            print('Saving interrupt')
             torch.save({
-                'epoch': epoch+1,
+                'epoch': epoch + 1,
                 'best_mIoU': best_mIoU,
                 'state_dict': model.module.state_dict(),
                 'optimizer': optimizer.state_dict(),
-            }, os.path.join(final_output_dir,'checkpoint.pth.tar'))
-            if mean_IoU > best_mIoU:
-                best_mIoU = mean_IoU
-                torch.save(model.module.state_dict(),
-                        os.path.join(final_output_dir, 'best.pth'))
-            msg = 'Loss: {:.3f}, MeanIU: {: 4.4f}, Best_mIoU: {: 4.4f}'.format(
-                        valid_loss, mean_IoU, best_mIoU)
-            logging.info(msg)
-            logging.info(IoU_array)
+            }, os.path.join(final_output_dir, 'Interrupt.pth'))
+            exit(1)
 
     if args.local_rank <= 0:
 
