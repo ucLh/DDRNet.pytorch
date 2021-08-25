@@ -1,3 +1,4 @@
+from enum import Enum
 import os
 
 import cv2
@@ -8,6 +9,22 @@ import torch
 from torch.nn import functional as F
 
 from .base_dataset import BaseDataset
+
+
+class ClassNames(Enum):
+    ROAD = 0
+    SIDEWALK = 1
+    CURB = 2
+    MANHOLE = 3
+    GRASS = 4
+    TREES = 5
+    VEHICLE = 6
+    PERSON = 7
+    STATIC_STRUCTURE = 8
+    SKY = 9
+    # NATURE = 10
+    OTHER = 10
+
 
 class Mappilary(BaseDataset):
     def __init__(self, 
@@ -40,68 +57,78 @@ class Mappilary(BaseDataset):
         self.files = self.read_files()
         if num_samples:
             self.files = self.files[:num_samples]
-        ignore_label_ = 10
-        self.label_mapping = {0: ignore_label_,
-                              1: ignore_label_,
-                              2: 2, 
-                              3: ignore_label_,
-                              4: ignore_label_,
-                              5: ignore_label_,
-                              6: 8, 
-                              7: 0, 
-                              8: 0, 
-                              9: 2, 
-                              10: 0, 
-                              11: ignore_label_, # ??? pedestrian-area
-                              12: 0, 
-                              13: 0, 
-                              14: 0, 
-                              15: 1, 
-                              16: 8, 
-                              17: 8,
-                              18: 8,
-                              19: 7, 
-                              20: 7, 
-                              21: 7, 
-                              22: 7, 
-                              23: 0, 
-                              24: 0,
-                              25: ignore_label_,
-                              26: ignore_label_,
-                              27: 9,
-                              28: ignore_label_,
-                              29: 4, # terrain/grass
-                              30: 5, # trees
-                              31: ignore_label_,
-                              32: ignore_label_,
-                              33: ignore_label_,
-                              34: ignore_label_,
-                              35: ignore_label_,
-                              36: 3,
-                              37: ignore_label_,
-                              38: 8,
-                              39: ignore_label_,
-                              40: ignore_label_,
-                              41: 3,
-                              42: ignore_label_,
-                              43: 0, # pothole
-                              44: 8, 45: 8,
-                              46: ignore_label_,
-                              47: 8,
-                              48: ignore_label_,
-                              49: ignore_label_,
-                              50: ignore_label_,
-                              51: ignore_label_,
-                              52: 6, 54: 6, 55: 6, 56: 6, 57: 6, 58: 6, 59: 6, 60: 6, 61: 6, 62: 6, # Vehicles
-                              53: ignore_label_, # Boat
-                              63: ignore_label_,
-                              64: ignore_label_, 65: ignore_label_}
+        self.label_mapping = {0: ignore_label,
+                              1: ignore_label,
+                              2: ClassNames.CURB.value,
+                              3: ClassNames.STATIC_STRUCTURE.value,
+                              4: ClassNames.STATIC_STRUCTURE.value,
+                              5: ClassNames.STATIC_STRUCTURE.value,
+                              6: ClassNames.STATIC_STRUCTURE.value,
+                              7: ClassNames.ROAD.value,
+                              8: ClassNames.ROAD.value,
+                              9: ClassNames.CURB.value,
+                              10: ClassNames.ROAD.value,
+                              11: ignore_label,  # ??? pedestrian-area
+                              12: ClassNames.ROAD.value,
+                              13: ClassNames.ROAD.value,
+                              14: ClassNames.ROAD.value,
+                              15: ClassNames.SIDEWALK.value,
+                              16: ClassNames.STATIC_STRUCTURE.value,
+                              17: ClassNames.STATIC_STRUCTURE.value,
+                              18: ClassNames.STATIC_STRUCTURE.value,
+                              19: ClassNames.PERSON.value,
+                              20: ClassNames.PERSON.value,
+                              21: ClassNames.PERSON.value,
+                              22: ClassNames.PERSON.value,
+                              23: ClassNames.ROAD.value,
+                              24: ClassNames.ROAD.value,
+                              25: ignore_label,
+                              26: ClassNames.OTHER.value,
+                              27: ClassNames.SKY.value,
+                              28: ClassNames.OTHER.value,
+                              29: ClassNames.GRASS.value,  # terrain/grass
+                              30: ClassNames.TREES.value,  # trees
+                              31: ClassNames.OTHER.value,
+                              32: ClassNames.STATIC_STRUCTURE.value,
+                              33: ClassNames.STATIC_STRUCTURE.value,
+                              34: ClassNames.STATIC_STRUCTURE.value,
+                              35: ClassNames.STATIC_STRUCTURE.value,
+                              36: ClassNames.MANHOLE.value,
+                              37: ignore_label,
+                              38: ClassNames.STATIC_STRUCTURE.value,
+                              39: ClassNames.STATIC_STRUCTURE.value,
+                              40: ClassNames.STATIC_STRUCTURE.value,
+                              41: ClassNames.MANHOLE.value,
+                              42: ClassNames.STATIC_STRUCTURE.value,
+                              43: ClassNames.ROAD.value,  # pothole
+                              44: ClassNames.STATIC_STRUCTURE.value,
+                              45: ClassNames.STATIC_STRUCTURE.value,
+                              46: ClassNames.STATIC_STRUCTURE.value,
+                              47: ClassNames.STATIC_STRUCTURE.value,
+                              48: ClassNames.STATIC_STRUCTURE.value,
+                              49: ClassNames.STATIC_STRUCTURE.value,
+                              50: ClassNames.STATIC_STRUCTURE.value,
+                              51: ClassNames.STATIC_STRUCTURE.value,
+                              52: ClassNames.VEHICLE.value,
+                              54: ClassNames.VEHICLE.value,
+                              55: ClassNames.VEHICLE.value,
+                              56: ClassNames.VEHICLE.value,
+                              57: ClassNames.VEHICLE.value,
+                              58: ClassNames.VEHICLE.value,
+                              59: ClassNames.VEHICLE.value,
+                              60: ClassNames.VEHICLE.value,
+                              61: ClassNames.VEHICLE.value,
+                              62: ClassNames.VEHICLE.value,  # Vehicles
+                              53: ignore_label,  # Boat
+                              63: ignore_label,
+                              64: ignore_label,
+                              65: ignore_label}
         # self.class_weights = torch.FloatTensor([0.8373, 1.1, 1.1, 1.2,
         #                                         1.05, 0.9, 0.9, 1.1, 0.8786, 0.7, 1]).cuda()
         self.class_weights = torch.FloatTensor([1, 1, 1, 1.5,
-                                                1.05, 0.9, 0.9, 1.1, 1, 0.9, 1]).cuda()
+                                                1.05, 0.9, 0.9, 1.1, 0.9, 0.9, 1]).cuda()
 
-        self.class_thresholds = (100, 100, 90, 100, 100, 100, 100, 100, 100)
+        self.class_thresholds = (100000, 100000, 900000, 100000, 100000, 1000000, 80, 20, 1000000)
 
     def handle_pred_maps(self, pred):
         assert len(pred.shape) == 4
