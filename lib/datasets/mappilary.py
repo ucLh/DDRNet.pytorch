@@ -14,7 +14,7 @@ class Mappilary(BaseDataset):
                  root, 
                  list_path, 
                  num_samples=None, 
-                 num_classes=9,
+                 num_classes=11,
                  multi_scale=True, 
                  flip=True, 
                  ignore_label=-1, 
@@ -40,19 +40,19 @@ class Mappilary(BaseDataset):
         self.files = self.read_files()
         if num_samples:
             self.files = self.files[:num_samples]
-
-        self.label_mapping = {0: ignore_label, 
-                              1: ignore_label, 
+        ignore_label_ = 10
+        self.label_mapping = {0: ignore_label_,
+                              1: ignore_label_,
                               2: 2, 
-                              3: ignore_label, 
-                              4: ignore_label, 
-                              5: ignore_label, 
+                              3: ignore_label_,
+                              4: ignore_label_,
+                              5: ignore_label_,
                               6: 8, 
                               7: 0, 
                               8: 0, 
                               9: 2, 
                               10: 0, 
-                              11: ignore_label, # ??? pedestrian-area
+                              11: ignore_label_, # ??? pedestrian-area
                               12: 0, 
                               13: 0, 
                               14: 0, 
@@ -66,41 +66,52 @@ class Mappilary(BaseDataset):
                               22: 7, 
                               23: 0, 
                               24: 0,
-                              25: ignore_label,
-                              26: ignore_label, 
-                              27: ignore_label, 
-                              28: ignore_label,
+                              25: ignore_label_,
+                              26: ignore_label_,
+                              27: 9,
+                              28: ignore_label_,
                               29: 4, # terrain/grass
                               30: 5, # trees
-                              31: ignore_label,
-                              32: ignore_label,
-                              33: ignore_label,
-                              34: ignore_label,
-                              35: ignore_label,
+                              31: ignore_label_,
+                              32: ignore_label_,
+                              33: ignore_label_,
+                              34: ignore_label_,
+                              35: ignore_label_,
                               36: 3,
-                              37: ignore_label,
+                              37: ignore_label_,
                               38: 8,
-                              39: ignore_label,
-                              40: ignore_label,
+                              39: ignore_label_,
+                              40: ignore_label_,
                               41: 3,
-                              42: ignore_label,
+                              42: ignore_label_,
                               43: 0, # pothole
                               44: 8, 45: 8,
-                              46: ignore_label,
+                              46: ignore_label_,
                               47: 8,
-                              48: ignore_label,
-                              49: ignore_label,
-                              50: ignore_label,
-                              51: ignore_label,
+                              48: ignore_label_,
+                              49: ignore_label_,
+                              50: ignore_label_,
+                              51: ignore_label_,
                               52: 6, 54: 6, 55: 6, 56: 6, 57: 6, 58: 6, 59: 6, 60: 6, 61: 6, 62: 6, # Vehicles
-                              53: ignore_label, # Boat
-                              63: ignore_label,
-                              64: ignore_label, 65: ignore_label}
-        self.class_weights = torch.FloatTensor([0.8373, 0.918, 0.866, 1.0345, 
-                                        1.0166, 0.9969, 0.9754, 1.0489,
-                                        0.8786, 1.0023, 0.9539, 0.9843, 
-                                        1.1116, 0.9037, 1.0865, 1.0955, 
-                                        1.0865, 1.1529, 1.0507]).cuda()
+                              53: ignore_label_, # Boat
+                              63: ignore_label_,
+                              64: ignore_label_, 65: ignore_label_}
+        # self.class_weights = torch.FloatTensor([0.8373, 1.1, 1.1, 1.2,
+        #                                         1.05, 0.9, 0.9, 1.1, 0.8786, 0.7, 1]).cuda()
+        self.class_weights = torch.FloatTensor([1, 1, 1, 1.5,
+                                                1.05, 0.9, 0.9, 1.1, 1, 0.9, 1]).cuda()
+
+        self.class_thresholds = (100, 100, 90, 100, 100, 100, 100, 100, 100)
+
+    def handle_pred_maps(self, pred):
+        assert len(pred.shape) == 4
+        assert pred.shape[0] == 1, 'support only batch size 1'
+        pred = pred.squeeze()
+        res = np.zeros(pred.shape[1:])
+        for i, map_ in enumerate(pred):
+            map_ = map_.cpu().numpy()
+            res[map_ > self.class_thresholds[i]] = i + 1
+        return res
     
     def read_files(self):
         files = []
