@@ -125,7 +125,7 @@ class Mappilary(BaseDataset):
                               65: ignore_label}
         # self.class_weights = torch.FloatTensor([0.8373, 1.1, 1.1, 1.2,
         #                                         1.05, 0.9, 0.9, 1.1, 0.8786, 0.7, 1]).cuda()
-        self.class_weights = torch.FloatTensor([1, 1, 1, 1.5,
+        self.class_weights = torch.FloatTensor([1, 1.2, 1.2, 1.5,
                                                 1.05, 0.9, 0.9, 1.1, 0.9, 0.9, 1]).cuda()
 
         self.class_thresholds = (100000, 100000, 900000, 100000, 100000, 1000000, 80, 20, 1000000)

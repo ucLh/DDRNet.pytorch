@@ -35,7 +35,7 @@ def parse_args():
     
     parser.add_argument('--cfg',
                         help='experiment configure file name',
-                        default="experiments/cityscapes/ddrnet23_slim.yaml",
+                        default="experiments/mappilary/ddrnet23_slim.yaml",
                         type=str)
     parser.add_argument('opts',
                         help="Modify config options using the command-line",
@@ -77,7 +77,7 @@ def main():
         model_state_file = config.TEST.MODEL_FILE
     else:
         # model_state_file = os.path.join(final_output_dir, 'best_0.7589.pth')
-        model_state_file = os.path.join(final_output_dir, 'best.pth')    
+        model_state_file = os.path.join(final_output_dir, 'combo_65+70.pth')
     logger.info('=> loading model from {}'.format(model_state_file))
         
     pretrained_dict = torch.load(model_state_file)
@@ -85,7 +85,7 @@ def main():
         pretrained_dict = pretrained_dict['state_dict']
     model_dict = model.state_dict()
     pretrained_dict = {k[6:]: v for k, v in pretrained_dict.items()
-                        if k[6:] in model_dict.keys()}
+                       if k[6:] in model_dict.keys()}
     for k, _ in pretrained_dict.items():
         logger.info(
             '=> loading {} from pretrained model'.format(k))
@@ -118,11 +118,11 @@ def main():
     
     start = timeit.default_timer()
 
-    test(config, 
-            test_dataset, 
-            testloader, 
-            model,
-            sv_dir=final_output_dir+'/test_result')
+    test(config,
+         test_dataset,
+         testloader,
+         model,
+         sv_dir=final_output_dir+'/test_result')
 
     end = timeit.default_timer()
     logger.info('Mins: %d' % np.int((end-start)/60))

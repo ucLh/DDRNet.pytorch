@@ -124,8 +124,7 @@ def get_confusion_matrix(label, pred, size, num_class, ignore=-1):
     output = pred.cpu().numpy().transpose(0, 2, 3, 1)
     seg_pred = np.asarray(np.argmax(output, axis=3), dtype=np.uint8)
     # seg_pred = label_pred.numpy()
-    seg_gt = np.asarray(
-    label.cpu().numpy()[:, :size[-2], :size[-1]], dtype=np.int)
+    seg_gt = np.asarray(label.cpu().numpy()[:, :size[-2], :size[-1]], dtype=np.int)
 
     ignore_index = seg_gt != ignore
     seg_gt = seg_gt[ignore_index]
@@ -246,7 +245,7 @@ class Map16(object):
         # colorize prediction
         pred_color = colorEncode(pred, self.colors).astype(np.uint8)
 
-        im_vis = img * 0.7 + pred_color * 0.3
+        im_vis = img * 0.5 + pred_color * 0.5
         im_vis = im_vis.astype(np.uint8)
 
         # for vedio result show
@@ -257,6 +256,30 @@ class Map16(object):
             os.makedirs(dir)
         Image.fromarray(im_vis).save(
             os.path.join(dir, img_name))
+
+
+class Map9Mappilary(Map16):
+    def __init__(self, vedioCap, visualpoint=True):
+        self.names = ("road", "sidewalk", "curb", "manhole",
+                      "grass", "trees", "vehicle", "person",
+                      "static_structure", "sky", "background")
+        self.colors = np.array([
+            # (0, 0, 0),
+            (128, 64, 128),
+            (244, 35, 232),
+            (196, 196, 196),
+            (100, 128, 160),
+            (152, 251, 152),
+            (107, 142, 35),
+            (0, 0, 142),
+            (220, 20, 60),
+            (70, 70, 70),
+            (70, 130, 180),
+            (0, 0, 0)
+        ], dtype=np.uint8)
+        self.outDir = "output/mappilary"
+        self.vedioCap = vedioCap
+        self.visualpoint = visualpoint
 
 
 def speed_test(model, size=896, iteration=100):

@@ -3,7 +3,7 @@
 # Licensed under the MIT License.
 # Written by Ke Sun (sunk@mail.ustc.edu.cn)
 # ------------------------------------------------------------------------------
-
+import cv2
 import logging
 import os
 import time
@@ -20,7 +20,9 @@ from torch.nn import functional as F
 from utils.utils import AverageMeter
 from utils.utils import get_confusion_matrix
 from utils.utils import adjust_learning_rate
-from utils.utils import Map16, Vedio
+from utils.utils import Vedio
+# from utils.utils import Map16
+from utils.utils import Map9Mappilary as Map16
 # from utils.DenseCRF import DenseCRF
 
 import utils.distributed as dist
@@ -54,6 +56,7 @@ def train(config, epoch, num_epoch, epoch_iters, base_lr,
     cur_iters = epoch*epoch_iters
     writer = writer_dict['writer']
     global_steps = writer_dict['train_global_steps']
+    accumulation_steps = config.TRAIN.BATCH_SIZE_OVERALL / config.TRAIN.BATCH_SIZE_PER_GPU
 
     for i_iter, batch in enumerate(trainloader, 0):
         images, labels, _, _ = batch
@@ -62,6 +65,7 @@ def train(config, epoch, num_epoch, epoch_iters, base_lr,
 
         losses, _, acc = model(images, labels)
         loss = losses.mean()
+        loss /= accumulation_steps
         acc  = acc.mean()
 
         if dist.is_distributed():
@@ -69,9 +73,11 @@ def train(config, epoch, num_epoch, epoch_iters, base_lr,
         else:
             reduced_loss = loss
 
-        model.zero_grad()
         loss.backward()
-        optimizer.step()
+        if (i_iter + 1) % accumulation_steps == 0:
+            optimizer.step()
+            # Reset gradients, for the next accumulated batches
+            optimizer.zero_grad()
 
         # measure elapsed time
         batch_time.update(time.time() - tic)
@@ -106,7 +112,17 @@ def validate(config, testloader, model, writer_dict):
     with torch.no_grad():
         for idx, batch in enumerate(testloader):
             image, label, _, _ = batch
-            size = label.size()
+            # size = label.size()
+
+            # Manually define size, because it takes image original size
+            w, h = config.TEST.IMAGE_SIZE
+            size = (3, h, w)
+            image = F.interpolate(image, size[-2:], mode='bilinear')
+            label = label.numpy()
+            label = label[0]
+            label = cv2.resize(label, (size[-1], size[-2]), interpolation=cv2.INTER_NEAREST)
+            label = torch.from_numpy(label).unsqueeze(0)
+
             image = image.cuda()
             label = label.long().cuda()
 
@@ -167,7 +183,17 @@ def testval(config, test_dataset, testloader, model,
     with torch.no_grad():
         for index, batch in enumerate(tqdm(testloader)):
             image, label, _, name, *border_padding = batch
-            size = label.size()
+            # size = label.size()
+
+            image, label, _, name, *border_padding, label_pred = batch
+            w, h = config.TEST.IMAGE_SIZE
+            size = (3, h, w)
+            image = F.interpolate(image, size[-2:], mode='bilinear')
+            label = label.numpy()
+            label = label[0]
+            label = cv2.resize(label, (size[-1], size[-2]), interpolation=cv2.INTER_NEAREST)
+            label = torch.from_numpy(label).unsqueeze(0)
+            
             pred = test_dataset.multi_scale_inference(
                 config,
                 model,
@@ -206,6 +232,7 @@ def testval(config, test_dataset, testloader, model,
                 pred,
                 size,
                 config.DATASET.NUM_CLASSES,
+                # label_pred,
                 config.TRAIN.IGNORE_LABEL)
 
             if sv_pred:
@@ -239,8 +266,11 @@ def test(config, test_dataset, testloader, model,
     model.eval()
     with torch.no_grad():
         for _, batch in enumerate(tqdm(testloader)):
-            image, size, name = batch
-            size = size[0]
+            image, _, size, name, *border_padding = batch
+            # size = size[0]
+            w, h = config.TEST.IMAGE_SIZE
+            size = (3, h, w)
+            image = F.interpolate(image, size[-2:])
             pred = test_dataset.multi_scale_inference(
                 config,
                 model,
@@ -266,6 +296,7 @@ def test(config, test_dataset, testloader, model,
 
                 _, pred = torch.max(pred, dim=1)
                 pred = pred.squeeze(0).cpu().numpy()
+                # pred = test_dataset.handle_pred_maps(pred)
                 map16.visualize_result(image, pred, sv_dir, name[0]+'.jpg')
                 # sv_path = os.path.join(sv_dir, 'test_results')
                 # if not os.path.exists(sv_path):
