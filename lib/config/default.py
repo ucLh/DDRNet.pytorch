@@ -57,11 +57,11 @@ _C.LOSS.BALANCE_WEIGHTS = [0.5, 0.5]
 _C.DATASET = CN()
 _C.DATASET.MODEL = 'train'
 _C.DATASET.ROOT = ''
-_C.DATASET.DATASET = 'cityscapes'
-_C.DATASET.NUM_CLASSES = 19
-_C.DATASET.TRAIN_SET = 'list/cityscapes/train.lst'
+_C.DATASET.DATASET = 'mappilary'
+_C.DATASET.NUM_CLASSES = 11
+_C.DATASET.TRAIN_SET = 'list/mappilary/train.lst'
 _C.DATASET.EXTRA_TRAIN_SET = ''
-_C.DATASET.TEST_SET = 'list/cityscapes/val.lst'
+_C.DATASET.TEST_SET = 'list/mappilary/val.lst'
 
 # training
 _C.TRAIN = CN()
@@ -101,6 +101,7 @@ _C.TRAIN.RESUME = False
 
 _C.TRAIN.BATCH_SIZE_PER_GPU = 32
 _C.TRAIN.SHUFFLE = True
+_C.TRAIN.VAL_INTERVAL = 2
 # only using some training samples
 _C.TRAIN.NUM_SAMPLES = 0
 

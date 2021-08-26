@@ -251,14 +251,13 @@ def main():
         model_state_file = config.MODEL.PRETRAINED
         if os.path.isfile(model_state_file):
             checkpoint = torch.load(model_state_file, map_location={'cuda:0': 'cpu'})
-            best_mIoU = checkpoint['best_mIoU']
-            last_epoch = checkpoint['epoch']
-            dct = checkpoint['state_dict']
+            best_mIoU = checkpoint['best_mIoU'] if hasattr(checkpoint, 'best_mIoU') else 0
+            last_epoch = checkpoint['epoch'] if hasattr(checkpoint, 'epoch') else config.TRAIN.BEGIN_EPOCH
             
             model.module.model.load_state_dict({k.replace('model.', ''): v for k, v in checkpoint['state_dict'].items() if k.startswith('model.')})
             optimizer.load_state_dict(checkpoint['optimizer'])
             logger.info("=> loaded checkpoint (epoch {})"
-                        .format(checkpoint['epoch']))
+                        .format(last_epoch))
         if distributed:
             torch.distributed.barrier()
 
@@ -266,6 +265,11 @@ def main():
     end_epoch = config.TRAIN.END_EPOCH + config.TRAIN.EXTRA_EPOCH
     num_iters = config.TRAIN.END_EPOCH * epoch_iters
     extra_iters = config.TRAIN.EXTRA_EPOCH * extra_epoch_iters
+
+    # Defaults in case we are loading from checkpoint
+    mean_IoU = 0
+    valid_loss = 1000
+    IoU_array = 0
     
     for epoch in range(last_epoch, end_epoch):
         try:
@@ -286,7 +290,7 @@ def main():
                       epoch_iters, config.TRAIN.LR, num_iters,
                       trainloader, optimizer, model, writer_dict)
 
-            if epoch % 10 == 0:
+            if epoch % config.TRAIN.VAL_INTERVAL == 0:
                 valid_loss, mean_IoU, IoU_array = validate(config,
                             testloader, model, writer_dict)
 
@@ -302,12 +306,12 @@ def main():
                 if mean_IoU > best_mIoU:
                     best_mIoU = mean_IoU
                     torch.save(model.module.state_dict(),
-                            os.path.join(final_output_dir, 'best.pth'))
+                            os.path.join(final_output_dir, f'best_{epoch}.pth'))
                 msg = 'Loss: {:.3f}, MeanIU: {: 4.4f}, Best_mIoU: {: 4.4f}'.format(
                             valid_loss, mean_IoU, best_mIoU)
                 logging.info(msg)
                 logging.info(IoU_array)
-        except KeyboardInterrupt:
+        except:
             print('Saving interrupt')
             torch.save({
                 'epoch': epoch + 1,
