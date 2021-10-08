@@ -257,9 +257,13 @@ def main():
             best_mIoU = checkpoint['best_mIoU'] if hasattr(checkpoint, 'best_mIoU') else 0
             last_epoch = checkpoint['epoch'] if hasattr(checkpoint, 'epoch') else config.TRAIN.BEGIN_EPOCH
 
-            model.model.load_state_dict(
-                {k.replace('model.', ''): v for k, v in checkpoint['state_dict'].items() if k.startswith('model.')})
-            optimizer.load_state_dict(checkpoint['optimizer'])
+            if 'state_dict' in checkpoint.keys():
+                model.model.load_state_dict(
+                    {k.replace('model.', ''): v for k, v in checkpoint['state_dict'].items() if k.startswith('model.')})
+            else:
+                model.model.load_state_dict(
+                    {k.replace('model.', ''): v for k, v in checkpoint.items() if k.startswith('model.')})
+            # optimizer.load_state_dict(checkpoint['optimizer'])
             logger.info("=> loaded checkpoint (epoch {})"
                         .format(last_epoch))
         if distributed:
@@ -326,7 +330,7 @@ def main():
             exit(1)
 
     if args.local_rank <= 0:
-        torch.save(model.module.state_dict(),
+        torch.save(model.state_dict(),
                    os.path.join(final_output_dir, 'final_state.pth'))
 
         writer_dict['writer'].close()

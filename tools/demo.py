@@ -77,7 +77,7 @@ def main():
         model_state_file = config.TEST.MODEL_FILE
     else:
         # model_state_file = os.path.join(final_output_dir, 'best_0.7589.pth')
-        model_state_file = os.path.join(final_output_dir, 'combo_65+70.pth')
+        model_state_file = os.path.join(final_output_dir, 'combo_182+206+220.pth')
     logger.info('=> loading model from {}'.format(model_state_file))
         
     pretrained_dict = torch.load(model_state_file)
@@ -122,7 +122,7 @@ def main():
          test_dataset,
          testloader,
          model,
-         sv_dir=final_output_dir+'/test_result')
+         sv_dir=final_output_dir+f'/test_result_{config.TEST.IMAGE_SIZE[0]}')
 
     end = timeit.default_timer()
     logger.info('Mins: %d' % np.int((end-start)/60))

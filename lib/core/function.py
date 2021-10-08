@@ -84,7 +84,7 @@ def train(config, epoch, num_epoch, epoch_iters, base_lr,
         tic = time.time()
 
         # update average loss
-        ave_loss.update(reduced_loss.item())
+        ave_loss.update(reduced_loss.item() * accumulation_steps)
         ave_acc.update(acc.item())
 
         lr = adjust_learning_rate(optimizer,
@@ -103,6 +103,15 @@ def train(config, epoch, num_epoch, epoch_iters, base_lr,
     writer.add_scalar('train_loss', ave_loss.average(), global_steps)
     writer_dict['train_global_steps'] = global_steps + 1
 
+
+def resize_image_and_label(image, label, size):
+    image = F.interpolate(image, size[-2:], mode='bilinear')
+    label = label.numpy()[0]
+    label = cv2.resize(label, (size[-1], size[-2]), interpolation=cv2.INTER_NEAREST)
+    label = torch.from_numpy(label).unsqueeze(0)
+    return image, label
+
+
 def validate(config, testloader, model, writer_dict):
     model.eval()
     ave_loss = AverageMeter()
@@ -117,11 +126,7 @@ def validate(config, testloader, model, writer_dict):
             # Manually define size, because it takes image original size
             w, h = config.TEST.IMAGE_SIZE
             size = (3, h, w)
-            image = F.interpolate(image, size[-2:], mode='bilinear')
-            label = label.numpy()
-            label = label[0]
-            label = cv2.resize(label, (size[-1], size[-2]), interpolation=cv2.INTER_NEAREST)
-            label = torch.from_numpy(label).unsqueeze(0)
+            image, label = resize_image_and_label(image, label, size)
 
             image = image.cuda()
             label = label.long().cuda()

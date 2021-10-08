@@ -123,8 +123,12 @@ def get_confusion_matrix(label, pred, size, num_class, ignore=-1):
     """
     output = pred.cpu().numpy().transpose(0, 2, 3, 1)
     seg_pred = np.asarray(np.argmax(output, axis=3), dtype=np.uint8)
-    # seg_pred = label_pred.numpy()
+    # seg_pred = cv2.resize(seg_pred[0], (800, 400), cv2.INTER_NEAREST)
+    # seg_pred = seg_pred[np.newaxis, :]
     seg_gt = np.asarray(label.cpu().numpy()[:, :size[-2], :size[-1]], dtype=np.int)
+    # seg_gt = np.asarray(label.cpu().numpy()[:, :size[-2], :size[-1]], dtype=np.uint8)
+    # seg_gt = cv2.resize(seg_gt[0], (800, 400), cv2.INTER_NEAREST)
+    # seg_gt = seg_gt[np.newaxis, :]
 
     ignore_index = seg_gt != ignore
     seg_gt = seg_gt[ignore_index]
@@ -185,7 +189,7 @@ class Vedio(object):
 
 
 class Map16(object):
-    def __init__(self, vedioCap, visualpoint=True):
+    def __init__(self, vedioCap, visualpoint=False):
         self.names = ("unlabeled", "road", "sidewalk", "building", "wall",
                 "fence", "pole", "traffic light", "traffic sign",
                 "vegetation", "terrain", "sky", "person", "rider", "car", "truck",
@@ -245,7 +249,7 @@ class Map16(object):
         # colorize prediction
         pred_color = colorEncode(pred, self.colors).astype(np.uint8)
 
-        im_vis = img * 0.5 + pred_color * 0.5
+        im_vis = img * 0.7 + pred_color * 0.3
         im_vis = im_vis.astype(np.uint8)
 
         # for vedio result show
@@ -259,7 +263,7 @@ class Map16(object):
 
 
 class Map9Mappilary(Map16):
-    def __init__(self, vedioCap, visualpoint=True):
+    def __init__(self, vedioCap, visualpoint=False):
         self.names = ("road", "sidewalk", "curb", "manhole",
                       "grass", "trees", "vehicle", "person",
                       "static_structure", "sky", "background")

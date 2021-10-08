@@ -28,11 +28,15 @@ def parse_args():
     
     parser.add_argument('--cfg',
                         help='experiment configure file name',
-                        default="experiments/cityscapes/ddrnet23_slim.yaml",
+                        default="experiments/mappilary/ddrnet23_slim.yaml",
                         type=str)
     parser.add_argument('--size', nargs=2, metavar=('width', 'height'), type=int,
                         help='Width followed by the height of the image that network will be configured to inference',
-                        default=(1280, 640))
+                        default=(2048, 1024))
+    parser.add_argument('--model',
+                        help='experiment configure file name',
+                        default="/home/integrant/Documents/ucLh/Programming/Python/Segmentation/ros_trt_segmentation/models/combo_182+206_for_high_resolution.pth",
+                        type=str)
     parser.add_argument('opts',
                         help="Modify config options using the command-line",
                         default=None,
@@ -81,11 +85,7 @@ def main():
     model = eval('models.'+config.MODEL.NAME +
                  '.get_seg_model')(config)
 
-    if config.TEST.MODEL_FILE:
-        model_state_file = config.TEST.MODEL_FILE
-    else:
-        model_state_file = os.path.join(final_output_dir, 'best.pth')   
-        # model_state_file = os.path.join(final_output_dir, 'final_state.pth')        
+    model_state_file = args.model
     logger.info('=> loading model from {}'.format(model_state_file))
         
     pretrained_dict = torch.load(model_state_file, map_location='cpu')
@@ -128,8 +128,6 @@ def main():
 
     assert check, "Simplified ONNX model could not be validated"
     onnx.save_model(model_simp, output_path)
-
-    
 
 
 if __name__ == '__main__':
