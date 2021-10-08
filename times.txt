@@ -20,10 +20,10 @@ tx2 74,2 ms
 512*1024
 2080ti 
 trtexec 2.59912 ms
-Mean: 0.0035220534801483155
-Median: 0.0034258365631103516
-Std: 0.0002943940893631747
-tx2 138 ms
+Mean: 0.00317
+Median: 0.00316
+Std: 0.000055
+tx2 127 ms -> 7.8 fps
 
 640*1280
 2080ti 
@@ -32,3 +32,34 @@ Mean: 0.005424571537971497
 Median: 0.005388140678405762
 Std: 0.0005930877315047519
 tx2 217 ms
+-----------------------Compare DDRNet and ResNet-OCR------------------------
+Resolution: 512x1024
+ResNet-OCR
+Throughput: 73.9696 qps
+[08/30/2021-08:17:27] [I] Latency: min = 13.6156 ms, max = 19.0586 ms, mean = 16.317 ms, median = 16.6262 ms, percentile(99%) = 18.3674 ms
+[08/30/2021-08:17:27] [I] End-to-End Host Latency: min = 21.8237 ms, max = 30.7722 ms, mean = 26.6856 ms, median = 27.2312 ms, percentile(99%) = 30.1394 ms
+[08/30/2021-08:17:27] [I] Enqueue Time: min = 0.183289 ms, max = 2.42529 ms, mean = 0.907187 ms, median = 0.905029 ms, percentile(99%) = 2.13452 ms
+[08/30/2021-08:17:27] [I] H2D Latency: min = 0.633972 ms, max = 1.13318 ms, mean = 0.839488 ms, median = 0.852051 ms, percentile(99%) = 1.11438 ms
+[08/30/2021-08:17:27] [I] GPU Compute Time: min = 2.00903 ms, max = 2.0528 ms, mean = 2.01942 ms, median = 2.01826 ms, percentile(99%) = 2.0415 ms
+[08/30/2021-08:17:27] [I] D2H Latency: min = 10.9565 ms, max = 16.1267 ms, mean = 13.4581 ms, median = 13.7104 ms, percentile(99%) = 15.3386 ms
+[08/30/2021-08:17:27] [I] Total Host Walltime: 3.04179 s
+[08/30/2021-08:17:27] [I] Total GPU Compute Time: 0.45437 s
+[08/30/2021-08:17:27] [W] * Throughput may be bound by device-to-host transfers for the outputs rather than GPU Compute and the GPU may be under-utilized.
+[08/30/2021-08:17:27] [W]   Add --noDataTransfers flag to disable data transfers.
+
+[08/30/2021-08:18:01] [I] Throughput: 763.273 qps
+[08/30/2021-08:18:01] [I] Latency: min = 1.88501 ms, max = 3.51562 ms, mean = 2.06818 ms, median = 2.07755 ms, percentile(99%) = 3.09106 ms
+[08/30/2021-08:18:01] [I] End-to-End Host Latency: min = 1.91748 ms, max = 4.43799 ms, mean = 2.49476 ms, median = 2.46826 ms, percentile(99%) = 3.52966 ms
+[08/30/2021-08:18:01] [I] Enqueue Time: min = 0.305054 ms, max = 2.76685 ms, mean = 0.568821 ms, median = 0.486572 ms, percentile(99%) = 2.00635 ms
+[08/30/2021-08:18:01] [I] H2D Latency: min = 0.487061 ms, max = 0.988098 ms, mean = 0.592793 ms, median = 0.608704 ms, percentile(99%) = 0.807373 ms
+[08/30/2021-08:18:01] [I] GPU Compute Time: min = 1.22321 ms, max = 2.54919 ms, mean = 1.27256 ms, median = 1.25488 ms, percentile(99%) = 1.94556 ms
+[08/30/2021-08:18:01] [I] D2H Latency: min = 0.16626 ms, max = 0.371643 ms, mean = 0.202832 ms, median = 0.197571 ms, percentile(99%) = 0.314941 ms
+[08/30/2021-08:18:01] [I] Total Host Walltime: 3.00286 s
+[08/30/2021-08:18:01] [I] Total GPU Compute Time: 2.9167 s
+
+ResNet has problems with throughput, but if look only at GPU compute time, it still loses
+ResNet-OCR
+[08/30/2021-08:17:27] [I] GPU Compute Time: min = 2.00903 ms, max = 2.0528 ms, mean = 2.01942 ms, median = 2.01826 ms, percentile(99%) = 2.0415 ms
+DDRNet
+[08/30/2021-08:18:01] [I] GPU Compute Time: min = 1.22321 ms, max = 2.54919 ms, mean = 1.27256 ms, median = 1.25488 ms, percentile(99%) = 1.94556 ms
+
