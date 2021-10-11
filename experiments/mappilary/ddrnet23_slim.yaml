@@ -62,3 +62,6 @@ TEST:
   #0.5,0.75,1.0,1.25,1.5,1.75
   # MODEL_FILE: "pretrained_models/best_val_smaller.pth"
   OUTPUT_INDEX: 1
+TRT:
+  ENGINE_PATH: "/home/docker_trt/catkin_ws/src/ros_trt_segmentation/models/ddrnet23_2048.bin"
+  COLORS_PATH: "/home/docker_trt/catkin_ws/src/ros_trt_segmentation/data/colors_mapillary.csv"

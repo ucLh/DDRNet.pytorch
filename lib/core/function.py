@@ -18,7 +18,7 @@ import torch.nn as nn
 from torch.nn import functional as F
 
 from utils.utils import AverageMeter
-from utils.utils import get_confusion_matrix
+from utils.utils import get_confusion_matrix, get_confusion_matrix_for_trt
 from utils.utils import adjust_learning_rate
 from utils.utils import Vedio
 # from utils.utils import Map16
@@ -178,6 +178,54 @@ def validate(config, testloader, model, writer_dict):
     writer.add_scalar('valid_mIoU', mean_IoU, global_steps)
     writer_dict['valid_global_steps'] = global_steps + 1
     return ave_loss.average(), mean_IoU, IoU_array
+
+
+def validate_trt(config, testloader, model):
+    nums = 1
+    confusion_matrix = np.zeros(
+        (config.DATASET.NUM_CLASSES, config.DATASET.NUM_CLASSES, nums))
+    for idx, batch in enumerate(testloader):
+        image, label, _, _ = batch
+        image = image.detach().cpu().numpy()
+        label = label.detach().cpu().numpy()
+
+        # Manually define size, because it takes image original size
+        w, h = config.TEST.IMAGE_SIZE
+        size = (3, h, w)
+        image = image[0].transpose((1, 2, 0))
+        image = cv2.resize(image, (w, h))
+        image = image.transpose(2, 0, 1)
+        image = image[np.newaxis, :]
+        label = label[0]
+        label = cv2.resize(label, (w, h), interpolation=cv2.INTER_NEAREST)
+        label = label[np.newaxis, :]
+
+        pred = model.inferencer.infer(image)[0]
+        if not isinstance(pred, (list, tuple)):
+            pred = [pred]
+        for i, x in enumerate(pred):
+
+            confusion_matrix[..., i] += get_confusion_matrix_for_trt(
+                label,
+                pred,
+                size,
+                config.DATASET.NUM_CLASSES,
+                config.TRAIN.IGNORE_LABEL
+            )
+
+        if idx % 10 == 0:
+            print(idx)
+
+    for i in range(nums):
+        pos = confusion_matrix[..., i].sum(1)
+        res = confusion_matrix[..., i].sum(0)
+        tp = np.diag(confusion_matrix[..., i])
+        IoU_array = (tp / np.maximum(1.0, pos + res - tp))
+        mean_IoU = IoU_array.mean()
+        if dist.get_rank() <= 0:
+            logging.info('{} {} {}'.format(i, IoU_array, mean_IoU))
+
+    return 10000, mean_IoU, IoU_array
 
 
 def testval(config, test_dataset, testloader, model,

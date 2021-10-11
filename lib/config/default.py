@@ -131,6 +131,11 @@ _C.DEBUG.SAVE_BATCH_IMAGES_PRED = False
 _C.DEBUG.SAVE_HEATMAPS_GT = False
 _C.DEBUG.SAVE_HEATMAPS_PRED = False
 
+# trt
+_C.TRT = CN()
+_C.TRT.ENGINE_PATH = ''
+_C.TRT.COLORS_PATH = ''
+
 
 def update_config(cfg, args):
     cfg.defrost()
