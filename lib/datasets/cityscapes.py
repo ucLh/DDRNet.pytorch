@@ -8,12 +8,12 @@ import os
 
 import cv2
 import numpy as np
-from PIL import Image
-
 import torch
+from PIL import Image
 from torch.nn import functional as F
 
 from .base_dataset import BaseDataset
+
 
 class Cityscapes(BaseDataset):
     def __init__(self, 

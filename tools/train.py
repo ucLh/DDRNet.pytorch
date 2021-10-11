@@ -5,33 +5,29 @@
 # ------------------------------------------------------------------------------
 
 import argparse
+import logging
 import os
 import pprint
 import shutil
 import sys
-
-import logging
 import time
 import timeit
 from pathlib import Path
 
-import numpy as np
-
-import torch
-import torch.nn as nn
-import torch.backends.cudnn as cudnn
-import torch.optim
-from tensorboardX import SummaryWriter
-
 import _init_paths
-import models
 import datasets
-from config import config
-from config import update_config
+import models
+import numpy as np
+import torch
+import torch.backends.cudnn as cudnn
+import torch.nn as nn
+import torch.optim
+from config import config, update_config
 from core.criterion import CrossEntropy, OhemCrossEntropy
 from core.function import train, validate
+from tensorboardX import SummaryWriter
 from utils.modelsummary import get_model_summary
-from utils.utils import create_logger, FullModel
+from utils.utils import FullModel, create_logger
 
 
 def parse_args():

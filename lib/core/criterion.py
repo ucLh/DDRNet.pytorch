@@ -4,11 +4,12 @@
 # Written by Ke Sun (sunk@mail.ustc.edu.cn)
 # ------------------------------------------------------------------------------
 
+import logging
+
 import torch
 import torch.nn as nn
-from torch.nn import functional as F
-import logging
 from config import config
+from torch.nn import functional as F
 
 
 class CrossEntropy(nn.Module):

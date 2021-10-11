@@ -5,12 +5,9 @@
 # Modified by Ke Sun (sunk@mail.ustc.edu.cn), Rainbowsecret (yuyua@microsoft.com)
 # ------------------------------------------------------------------------------
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 from yacs.config import CfgNode as CN
-
 
 # configs for HRNet48
 HRNET_48 = CN()

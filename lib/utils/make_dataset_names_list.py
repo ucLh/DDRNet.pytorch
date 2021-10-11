@@ -1,4 +1,4 @@
-from os import walk, path
+from os import path, walk
 
 images = []
 labels = []

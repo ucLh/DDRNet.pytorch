@@ -8,6 +8,7 @@ import numpy as np
 import pydensecrf.densecrf as dcrf
 import pydensecrf.utils as utils
 
+
 class DenseCRF(object):
     def __init__(self, max_epochs=5, delta_aphla=80, delta_beta=3, w1=10, delta_gamma=3, w2=3):
         self.max_epochs = max_epochs

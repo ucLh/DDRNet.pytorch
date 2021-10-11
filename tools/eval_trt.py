@@ -7,18 +7,16 @@
 import argparse
 import pprint
 
+import _init_paths
+import datasets
 import torch
 import torch.backends.cudnn as cudnn
 import torch.optim
-
-import _init_paths
-import datasets
-from datasets.mappilary import Mappilary
-from config import config
-from config import update_config
+from config import config, update_config
 from core.function import validate_trt
-from utils.utils import create_logger
+from datasets.mappilary import Mappilary
 from trtseg import Segmentator
+from utils.utils import create_logger
 
 
 def parse_args():

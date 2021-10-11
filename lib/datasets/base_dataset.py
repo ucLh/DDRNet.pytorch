@@ -5,16 +5,14 @@
 # ------------------------------------------------------------------------------
 
 import os
+import random
 
 import cv2
 import numpy as np
-import random
-
 import torch
+from config import config
 from torch.nn import functional as F
 from torch.utils import data
-
-from config import config
 
 
 class BaseDataset(data.Dataset):

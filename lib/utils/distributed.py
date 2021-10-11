@@ -7,6 +7,7 @@
 import torch
 import torch.distributed as torch_dist
 
+
 def is_distributed():
     return torch_dist.is_initialized()
 

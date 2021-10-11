@@ -4,20 +4,18 @@
 # Written by Ke Sun (sunk@mail.ustc.edu.cn)
 # ------------------------------------------------------------------------------
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
-import os
 import logging
+import os
 import time
 from pathlib import Path
 
 import numpy as np
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 
 class FullModel(nn.Module):
   """
@@ -181,6 +179,7 @@ def adjust_learning_rate(optimizer, base_lr, max_iters,
 
 import cv2
 from PIL import Image
+
 
 def colorEncode(labelmap, colors, mode='RGB'):
     labelmap = labelmap.astype('int')

@@ -1,11 +1,10 @@
-from enum import Enum
 import os
+from enum import Enum
 
 import cv2
 import numpy as np
-from PIL import Image
-
 import torch
+from PIL import Image
 from torch.nn import functional as F
 
 from .base_dataset import BaseDataset

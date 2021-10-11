@@ -8,10 +8,9 @@ import os
 
 import cv2
 import numpy as np
-
 import torch
-from torch.nn import functional as F
 from PIL import Image
+from torch.nn import functional as F
 
 from .base_dataset import BaseDataset
 

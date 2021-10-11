@@ -1,5 +1,6 @@
-import torch
 import functools
+
+import torch
 
 if torch.__version__.startswith('0'):
     from .sync_bn.inplace_abn.bn import InPlaceABNSync

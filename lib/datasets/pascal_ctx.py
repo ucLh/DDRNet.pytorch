@@ -10,11 +10,11 @@ import os
 
 import cv2
 import numpy as np
+import torch
 from PIL import Image
 
-import torch
-
 from .base_dataset import BaseDataset
+
 
 class PASCALContext(BaseDataset):
     def __init__(self, 

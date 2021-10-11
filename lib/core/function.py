@@ -3,29 +3,27 @@
 # Licensed under the MIT License.
 # Written by Ke Sun (sunk@mail.ustc.edu.cn)
 # ------------------------------------------------------------------------------
-import cv2
 import logging
 import os
 import time
 
+import cv2
 import numpy as np
 import numpy.ma as ma
-from tqdm import tqdm
-from PIL import Image
-
 import torch
 import torch.nn as nn
+import utils.distributed as dist
+from PIL import Image
 from torch.nn import functional as F
-
-from utils.utils import AverageMeter
-from utils.utils import get_confusion_matrix, get_confusion_matrix_for_trt
-from utils.utils import adjust_learning_rate
-from utils.utils import Vedio
+from tqdm import tqdm
 # from utils.utils import Map16
+from utils.utils import AverageMeter
 from utils.utils import Map9Mappilary as Map16
+from utils.utils import (Vedio, adjust_learning_rate, get_confusion_matrix,
+                         get_confusion_matrix_for_trt)
+
 # from utils.DenseCRF import DenseCRF
 
-import utils.distributed as dist
 
 vedioCap = Vedio('./output/cdOffice.mp4')
 map16 = Map16(vedioCap)

@@ -4,19 +4,16 @@
 # Written by Ke Sun (sunk@mail.ustc.edu.cn), Jingyi Xie (hsfzxjy@gmail.com)
 # ------------------------------------------------------------------------------
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
-import os
-import logging
 import functools
+import logging
+import os
 
 import numpy as np
-
 import torch
-import torch.nn as nn
 import torch._utils
+import torch.nn as nn
 import torch.nn.functional as F
 
 from .bn_helper import BatchNorm2d, BatchNorm2d_class, relu_inplace

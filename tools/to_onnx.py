@@ -7,21 +7,21 @@
 import argparse
 import os
 import pprint
-import onnx
-from onnxsim import simplify
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.backends.cudnn as cudnn
 
 import _init_paths
-import models
 import datasets
-from config import config
-from config import update_config
-from core.function import testval, test
+import models
+import onnx
+import torch
+import torch.backends.cudnn as cudnn
+import torch.nn as nn
+import torch.nn.functional as F
+from config import config, update_config
+from core.function import test, testval
+from onnxsim import simplify
 from utils.modelsummary import get_model_summary
-from utils.utils import create_logger, FullModel, speed_test
+from utils.utils import FullModel, create_logger, speed_test
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train segmentation network')
