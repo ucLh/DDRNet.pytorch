@@ -1,3 +1,9 @@
+### Изменения
+
+- Код по умолчанию использует только 1 GPU
+- Добавлен класс датасета для Mappilary
+- Немного переработана конфигурация, практически всё настраивается в .yaml файле в папке [experiments](./experiments)
+
 # Deep Dual-resolution Networks for Real-time and Accurate Semantic Segmentation of Road Scenes
 
 ## Introduction
